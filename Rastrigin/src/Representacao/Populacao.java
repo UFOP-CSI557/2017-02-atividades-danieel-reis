@@ -55,10 +55,32 @@ public class Populacao {
         }
     }
 
+    // Criar a população inicial binária
+    public void criarBinario() {
+        individuos = new ArrayList<>();
+
+        for (int i = 0; i < this.getTamanho(); i++) {
+            // Cria cada indivíduo
+            if (Main.IMPRIMIR) {
+                System.out.println("Indivíduo " + (i + 1) + "\t");
+            }
+            Individuo individuo = new Individuo(getProblema());
+            individuo.criarBinario();
+            individuos.add(individuo);
+        }
+    }
+
     // Avalia a população
     public void avaliar() {
         for (Individuo individuo : this.getIndividuos()) {
             individuo.calcularFuncaoObjetivo();
+        }
+    }
+
+    // Avalia a população binária
+    public void avaliarBinario(int precisao) {
+        for (Individuo individuo : this.getIndividuos()) {
+            individuo.calcularFuncaoObjetivoBinario(precisao);
         }
     }
 
@@ -71,4 +93,5 @@ public class Populacao {
     public Individuo getPiorIndividuo() {
         return Collections.max(individuos);
     }
+
 }

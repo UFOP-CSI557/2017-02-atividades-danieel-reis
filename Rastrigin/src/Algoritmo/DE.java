@@ -115,30 +115,35 @@ public class DE {
         // Gerações - Enquanto o critério de parada não for atingido...
         for (int gen = 1; gen <= geracoes; gen++) {
 
-            // Selecionando os x% melhores indivíduos da população e move para a nova população
-            ArrayList<Individuo> pais = new ArrayList<>();
+            // Selecionando os x% melhores indivíduos da população e move para a elite
+            ArrayList<Individuo> elite = new ArrayList<>();
+            try {
+                for (int i = 0; i < numPais; i++) {
+                    elite.add((Individuo) melhorSolucao.clone());
+                    populacao.getIndividuos().remove(melhorSolucao);
+                    populacao.avaliar();
 
-            for (int i = 0; i < numPais; i++) {
-                pais.add(melhorSolucao);
-                populacao.getIndividuos().remove(melhorSolucao);
-                populacao.avaliar();
+                }
+            } catch (CloneNotSupportedException ex) {
+                ex.printStackTrace();
             }
-
-            novaPopulacao.getIndividuos().addAll(pais);
+            
+            // Adiciona todos indivíduos da populaçao a nova população
+            novaPopulacao.getIndividuos().addAll(populacao.getIndividuos());
             
             // Reproduz pra gerar os (tamPop - numPais) selecionados pelo elitismo
             for (int i = 0; i < (tamPop - numPais); ++i) {
 
                 // Selecionar aleatoriamente r0, r1, r2
-                int r0 = rnd.nextInt(tamPop - numPais);
-                int r1, r2;
-                do {
-                    r1 = rnd.nextInt(tamPop - numPais);
-                } while (r1 == r0);
-
+                int r1 = rnd.nextInt(tamPop - numPais);
+                int r2, r3;
                 do {
                     r2 = rnd.nextInt(tamPop - numPais);
-                } while (r2 == r1 || r2 == r0);
+                } while (r2 == r1);
+
+                do {
+                    r3 = rnd.nextInt(tamPop - numPais);
+                } while (r3 == r2 || r3 == r1);
 
                 // Cria um novo indivíduo para realizar uma tentativa
                 Individuo trial = new Individuo(problema);
@@ -146,15 +151,15 @@ public class DE {
                 trial.getCromossomos().clear();
 
                 // Seleciona três indivíduos aleatórios
-                Individuo xr0 = (Individuo) populacao.getIndividuos().get(r0);
                 Individuo xr1 = (Individuo) populacao.getIndividuos().get(r1);
                 Individuo xr2 = (Individuo) populacao.getIndividuos().get(r2);
+                Individuo xr3 = (Individuo) populacao.getIndividuos().get(r3);
 
                 // Analisa a perturbação entre dois desses indivíduos aleatórios e insere no trial a diferença entre xr1 e xr2
                 perturbacao(trial, xr1, xr2);
 
-                // Mutação - Multiplica trial pelo fator de mutação e soma a xro, preenchendo o valor resultante em trial
-                mutacao(trial, xr0);
+                // Mutação - Multiplica trial pelo fator de mutação e soma a xr3, preenchendo o valor resultante em trial
+                mutacao(trial, xr3);
 
                 // Pega o indivíduo target (alvo)
                 Individuo target = (Individuo) populacao.getIndividuos().get(i);
@@ -162,11 +167,11 @@ public class DE {
                 // Crossover - Combina o trial com o target, ou seja, a tentativa com o alvo
                 crossover(trial, target);
 
-                // Selecao - Pega o que tiver maior FO entre trial e target
+                // Selecao - Pega o que tiver menor FO entre trial e target (melhor)
                 trial.calcularFuncaoObjetivo();
 
                 try {
-                    if (trial.getFuncaoObjetivo() >= target.getFuncaoObjetivo()) {
+                    if (trial.getFuncaoObjetivo() <= target.getFuncaoObjetivo()) {
                         novaPopulacao.getIndividuos().add((Individuo) trial.clone());
 
                         // Adiciona a função objetivo do descendente gerado
@@ -182,14 +187,20 @@ public class DE {
                 }
             }
 
-            // Define os sobreviventes -> Primeiro: adiciona todos indivíduos da novaPop na pop
+            // Define os sobreviventes -> Primeiro: ordena os indivíduos da nova população pela função objetivo
+            Collections.sort(novaPopulacao.getIndividuos());
+            
+            // Define os sobreviventes -> Segundo: seleciona apenas os x primeiros, mantendo o tamanho da população
+            novaPopulacao.getIndividuos().subList(tamPop - numPais, novaPopulacao.getIndividuos().size()).clear();
+
+            // Define os sobreviventes -> Terceiro: limpa a população
+            populacao.getIndividuos().clear();
+
+            // Define os sobreviventes -> Quarto: adiciona a elite na população
+            populacao.getIndividuos().addAll(elite);
+
+            // Define os sobreviventes -> Quinto: adiciona a nova população na população
             populacao.getIndividuos().addAll(novaPopulacao.getIndividuos());
-
-            // Define os sobreviventes -> Segundo: ordena os indivíduos da população pela função objetivo
-            Collections.sort(populacao.getIndividuos());
-
-            // Define os sobreviventes -> Terceiro: seleciona apenas os x primeiros, mantendo o tamanho da população
-            populacao.getIndividuos().subList(tamPop, populacao.getIndividuos().size()).clear();
 
             try {
                 // Atualiza a variável que armazena o melhor indivíduo da população
@@ -224,10 +235,10 @@ public class DE {
         }
     }
 
-    private void mutacao(Individuo trial, Individuo xr0) {
-        // Multiplicar por F a diferença e somar com Xr0
+    private void mutacao(Individuo trial, Individuo xr3) {
+        // Multiplicar por F a diferença e somar com Xr3
         for (int i = 0; i < problema.getNvariaveis(); i++) {
-            double valor = xr0.getCromossomos().get(i) + pMutacao * (trial.getCromossomos().get(i));
+            double valor = xr3.getCromossomos().get(i) + pMutacao * (trial.getCromossomos().get(i));
             trial.getCromossomos().set(i, valor);
         }
     }

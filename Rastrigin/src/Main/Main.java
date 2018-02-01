@@ -5,6 +5,7 @@
  */
 package Main;
 
+import Algoritmo.AED;
 import Algoritmo.AG;
 import Algoritmo.DE;
 import Algoritmo.ES;
@@ -31,8 +32,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        String filePath = "/home/daniel/CE/";
-        String nomeArquivoLOG = filePath + "execucao_rastrigin_6casos.csv";
+        String nomeArquivoLOG = "execucao_rastrigin_8casos.csv";
 
         int numexecucoes = 30;
         int tamPop = 100;
@@ -40,13 +40,17 @@ public class Main {
         Double min = -5.12;
         Double max = 5.12;
         int nvar = 100;
-        Double elitismo = 0.2;
+        Double elitismo = 0.05;
 
         Double pCrossover = 0.8;
         Double pMutacao = 0.05;
 
-        int mu = 100;
-        int lambda = 1000;
+        int mu = 10;
+        int lambda = nvar;
+
+        int precisao = 10;
+        int numBest = 100;
+        int numEst = 100;
 
         try {
             // Abre o arquivo
@@ -60,15 +64,21 @@ public class Main {
 
             // Caso 3
             ES es1 = new ES(tamPop, pMutacao, mu, lambda, geracoes, new Problema(min, max, nvar));
-            
+
             // Caso 4
             ES es2 = new ES(tamPop, pMutacao, mu, lambda, geracoes, new Problema(min, max, nvar), elitismo);
-            
+
             // Caso 5
             DE de1 = new DE(tamPop, pCrossover, pMutacao, geracoes, new Problema(min, max, nvar));
 
             // Caso 6
             DE de2 = new DE(tamPop, pCrossover, pMutacao, geracoes, new Problema(min, max, nvar), elitismo);
+
+            // Caso 7
+            AED aed1 = new AED(tamPop, geracoes, new Problema(min, max, nvar * precisao), precisao, numBest, numEst);
+
+            // Caso 8
+            AED aed2 = new AED(tamPop, geracoes, new Problema(min, max, nvar * precisao), precisao, numBest / 2, numEst / 2);
 
             // Executa
             Double melhor = 0.0;
@@ -77,7 +87,7 @@ public class Main {
             Double desvioPadrao = 0.0;
 
             for (int execucao = 1; execucao <= numexecucoes; execucao++) {
-                ArrayList<Integer> casos = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6));
+                ArrayList<Integer> casos = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8));
                 Collections.shuffle(casos);
 
                 // Escolhe qual dos dois casos irá executar no momento
@@ -125,6 +135,20 @@ public class Main {
                             pior = de2.getPiorSolucao().getFuncaoObjetivo();
                             media = Util.getMedia(de2.getFuncaoObjetivo());
                             desvioPadrao = Util.getDesvioPadrao(de2.getFuncaoObjetivo(), media);
+                            break;
+                        case 7:
+                            aed1.executar();
+                            melhor = aed1.getMelhorSolucao().getFuncaoObjetivo();
+                            pior = aed1.getPiorSolucao().getFuncaoObjetivo();
+                            media = Util.getMedia(aed1.getFuncaoObjetivo());
+                            desvioPadrao = Util.getDesvioPadrao(aed1.getFuncaoObjetivo(), media);
+                            break;
+                        case 8:
+                            aed2.executar();
+                            melhor = aed2.getMelhorSolucao().getFuncaoObjetivo();
+                            pior = aed2.getPiorSolucao().getFuncaoObjetivo();
+                            media = Util.getMedia(aed2.getFuncaoObjetivo());
+                            desvioPadrao = Util.getDesvioPadrao(aed2.getFuncaoObjetivo(), media);
                             break;
                     }
 

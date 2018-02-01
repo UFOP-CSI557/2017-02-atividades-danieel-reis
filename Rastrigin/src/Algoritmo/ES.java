@@ -53,6 +53,7 @@ public class ES {
         this.funcaoObjetivo = new ArrayList<>();
     }
 
+
     public Individuo getMelhorSolucao() {
         return melhorSolucao;
     }
@@ -110,66 +111,81 @@ public class ES {
             System.out.println("\nSolução inicial: " + melhorSolucao.getFuncaoObjetivo());
         }
 
-        Random rnd = new Random();
-
-        // Será selecionado os x% melhores indivíduos da população
-        int numPais = (int) (elitismo * tamPop);
-
         // Gerações - Enquanto o critério de parada não for atingido...
         for (int gen = 1; gen <= geracoes; gen++) {
 
-            // Selecionando os x% melhores indivíduos da população e move para a nova população
-            ArrayList<Individuo> pais = new ArrayList<>();
+            // Avalia a população
+            populacao.avaliar();
 
-            for (int i = 0; i < numPais; i++) {
-                pais.add(melhorSolucao);
-                populacao.getIndividuos().remove(melhorSolucao);
-                populacao.avaliar();
+            try {
+                // Atualiza a variável que armazena o melhor indivíduo da população
+                if (populacao.getMelhorIndividuo().getFuncaoObjetivo() < getMelhorSolucao().getFuncaoObjetivo()) {
+                    setMelhorSolucao((Individuo) populacao.getMelhorIndividuo().clone());
+                }
+
+                // Atualiza a variável que armazena o pior indivíduo da população
+                if (populacao.getPiorIndividuo().getFuncaoObjetivo() > getPiorSolucao().getFuncaoObjetivo()) {
+                    setPiorSolucao((Individuo) populacao.getPiorIndividuo().clone());
+                }
+
+            } catch (CloneNotSupportedException ex) {
+                ex.printStackTrace();
             }
 
-            novaPopulacao.getIndividuos().addAll(pais);
+            // Q recebe os mi indivíduos da população com melhor FO
+            Collections.sort(populacao.getIndividuos());    // Ordena população pela FO
+            novaPopulacao.getIndividuos().clear();          // Limpa a nova população
 
-            // Para cada pai, gerar lambda/mu filhos - Reproduz pra gerar os (tamPop - numPais) selecionados pelo elitismo     
-            for (int p = 0; p < (tamPop - numPais); ++p) {
-                for (int i = 0; i < lambda / mu; i++) {
-                    // Gera um número aleatório entre 0 e 1 -> Somente realiza a mutação se o valor gerado for menor que a taxa de mutação
-                    double valor = rnd.nextDouble();
-                    if (valor <= this.pMutacao) {
-                        try {
-                            // Insere os dados do pai no descendente
-                            Individuo descendente = (Individuo) populacao.getIndividuos().get(p).clone();
+            try {
+                for (int y = 0; y < mu; y++) {
+                    novaPopulacao.getIndividuos().add((Individuo) populacao.getIndividuos().get(y).clone());    // Adiciona indivíduo a nova população
+                }
+            } catch (CloneNotSupportedException ex) {
+                ex.printStackTrace();
+            }
 
-                            // Operar -> Mutacao no descendente
-                            mutacaoPorBit(descendente, problema.getMin_intervalo(), problema.getMax_intervalo(), pMutacao);
+            // Limpa a população
+            populacao.getIndividuos().clear();
 
-                            // Avalia o descendente criado
-                            descendente.calcularFuncaoObjetivo();
+            // Será selecionado os x% melhores indivíduos da nova população
+            int numPais = (int) (elitismo * mu);
 
-                            // Adiciona a função objetivo do descendente gerado a lista de FO
-                            funcaoObjetivo.add(descendente.getFuncaoObjetivo());
+            // Selecionando os x% melhores indivíduos da nova população e retorna para a população
+            try {
+                for (int i = 0; i < numPais; i++) {
+                    populacao.getIndividuos().add((Individuo) melhorSolucao.clone());
+                    novaPopulacao.getIndividuos().remove(melhorSolucao);
+                    novaPopulacao.avaliar();
+                }
+            } catch (CloneNotSupportedException ex) {
+                ex.printStackTrace();
+            }
 
-                            // Adiciona o novo indivíduo na população
-                            novaPopulacao.getIndividuos().add(descendente);
-                            
-                            // Busca local
-//                            BuscaLocalCombinatorio.buscaLocal(descendente);
+            // Para cada pai (indivíduo da nova população), gerar lambda/mu filhos - Reproduz pra gerar os (tamPop - numPais) selecionados pelo elitismo
+            for (int i = 0; i < (mu - numPais); i++) {
+                for (int j = 0; j < lambda / mu; j++) {
+                    try {
+                        // Insere os dados do pai no descendente
+                        Individuo descendente = (Individuo) novaPopulacao.getIndividuos().get(i).clone();
 
-                        } catch (CloneNotSupportedException ex) {
-                            ex.printStackTrace();
-                        }
+                        // Operar -> Mutacao no descendente
+                        mutacaoPorBit(descendente, problema.getMin_intervalo(), problema.getMax_intervalo(), pMutacao);
+
+                        // Avalia o descendente criado
+                        descendente.calcularFuncaoObjetivo();
+
+                        // Adiciona a função objetivo do descendente gerado a lista de FO
+                        funcaoObjetivo.add(descendente.getFuncaoObjetivo());
+
+                        // Adiciona o novo indivíduo na população
+                        populacao.getIndividuos().add(descendente);
+
+                    } catch (CloneNotSupportedException ex) {
+                        ex.printStackTrace();
                     }
                 }
             }
-
-            // Define os sobreviventes -> Primeiro: adiciona todos indivíduos da novaPop na pop
-            populacao.getIndividuos().addAll(novaPopulacao.getIndividuos());
-
-            // Define os sobreviventes -> Segundo: ordena os indivíduos da população pela função objetivo
-            Collections.sort(populacao.getIndividuos());
-
-            // Define os sobreviventes -> Terceiro: seleciona apenas os x primeiros, mantendo o tamanho da população
-            populacao.getIndividuos().subList(tamPop, populacao.getIndividuos().size()).clear();
-
+            
             try {
                 // Atualiza a variável que armazena o melhor indivíduo da população
                 if (populacao.getMelhorIndividuo().getFuncaoObjetivo() < getMelhorSolucao().getFuncaoObjetivo()) {
@@ -193,7 +209,6 @@ public class ES {
                 }
             }
         }
-
     }
 
     // Realiza a mutacao por Bit

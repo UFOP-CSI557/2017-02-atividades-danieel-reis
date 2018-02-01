@@ -20,6 +20,7 @@ public class Individuo implements Comparable<Individuo> {
 
     public Individuo(Problema problema) {
         this.problema = problema;
+        this.cromossomos = new ArrayList<>();
     }
 
     public Double getFuncaoObjetivo() {
@@ -44,8 +45,6 @@ public class Individuo implements Comparable<Individuo> {
 
     // Cria um indivíduo com um valor entre o mínimo e o máximo do problema
     public void criar() {
-        this.cromossomos = new ArrayList<>();
-
         Double min = problema.getMin_intervalo();
         Double max = problema.getMax_intervalo();
         Double valor;
@@ -69,6 +68,63 @@ public class Individuo implements Comparable<Individuo> {
         }
     }
 
+    // Cria um indivíduo com um valor binário
+    public void criarBinario() {
+        this.cromossomos = new ArrayList<>();
+        double valor;
+        for (int i = 0; i < problema.getNvariaveis(); i++) {
+
+            // Gera um número entre 0 e 1
+            if (Math.random() <= 0.5) {
+                valor = 0.0;
+            } else {
+                valor = 1.0;
+            }
+
+            // Insere o valor
+            this.getCromossomos().add(valor);
+
+            if (Main.IMPRIMIR) {
+                if (valor > 0.0) {
+                    System.out.printf("0 ", valor);
+                } else {
+                    System.out.printf("1 ", valor);
+                }
+            }
+            if (Main.IMPRIMIR) {
+                System.out.println();
+            }
+        }
+    }
+
+    // Decodifica indivíduo numa representação com tal precisão
+    public Individuo decodificarBinario(int precisao) {
+        Individuo ind = new Individuo(problema);
+
+        // nvar = número de variáveis / precisão
+        int nvar = this.getProblema().getNvariaveis() / precisao;
+
+        // Pega o máximo e o mínimo
+        double max = this.getProblema().getMax_intervalo();
+        double min = this.getProblema().getMin_intervalo();
+
+        int valor;
+        double real;
+
+        // Transforma o valor binário para um número pertencente ao intervalo
+        for (int i = 0; i < nvar; i++) {
+            valor = 0;
+
+            for (int j = 0; j < precisao; j++) {
+                valor += Math.pow(2, precisao - j - 1) * this.getCromossomos().get(i * precisao + j);
+            }
+
+            real = valor * (max - min) / (Math.pow(2, precisao) - 1) + min;
+            ind.getCromossomos().add(real);
+        }
+        return ind;
+    }
+
     @Override
     public String toString() {
         return "Individuo{" + "cromossomos=" + cromossomos + ", funcaoObjetivo=" + funcaoObjetivo + ", problema=" + problema + '}';
@@ -87,8 +143,8 @@ public class Individuo implements Comparable<Individuo> {
         individuo.setFuncaoObjetivo(this.getFuncaoObjetivo());
         return individuo;
     }
-
     // Converte o ângulo de graus para radiano -> Função Math.cos exige como entrada o ângulo em radiano
+
     private Double converterGrausParaRadiano(Double graus) {
         return (Math.PI / 180) * graus;
     }
@@ -106,5 +162,25 @@ public class Individuo implements Comparable<Individuo> {
         Double funcao = 10 * n + somatorio;
         this.setFuncaoObjetivo(funcao);
     }
-   
+
+    // Calcula a função objetivo -> Fórmula (Função de avaliação)
+    public void calcularFuncaoObjetivoBinario(int precisao) {
+        // Decodifica o indivíduo
+        Individuo ind_decodificado = ((Individuo) this).decodificarBinario(precisao);
+
+        // Tamanho = n / precisao
+        int n = getProblema().getNvariaveis() / precisao;
+
+        // Calcula FO so indivíduo decodificado
+        Double somatorio = 0.0;
+        for (int i = 0; i < n; i++) {
+            Double xi = ind_decodificado.getCromossomos().get(i);
+            somatorio += Math.pow(xi, 2) - 10 * Math.cos(converterGrausParaRadiano(2 * Math.PI * xi));
+        }
+
+        // Insere a FO do indíviduo
+        Double funcao = 10 * n + somatorio;
+        this.setFuncaoObjetivo(funcao);
+    }
+
 }

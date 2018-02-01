@@ -109,19 +109,23 @@ public class AG {
         // Gerações - Enquanto o critério de parada não for atingido...
         for (int gen = 1; gen <= geracoes; gen++) {
 
-            // Selecionando os x% melhores indivíduos da população e move para a nova população
-            ArrayList<Individuo> pais = new ArrayList<>();
-
-            for (int i = 0; i < numPais; i++) {
-                pais.add(melhorSolucao);
-                populacao.getIndividuos().remove(melhorSolucao);
-                populacao.avaliar();
+            // Selecionando os x% melhores indivíduos da população e move para a elite
+            ArrayList<Individuo> elite = new ArrayList<>();
+            try {
+                for (int i = 0; i < numPais; i++) {
+                    elite.add((Individuo) melhorSolucao.clone());
+                    populacao.getIndividuos().remove(melhorSolucao);
+                    populacao.avaliar();
+                }
+            } catch (CloneNotSupportedException ex) {
+                ex.printStackTrace();
             }
-
-            novaPopulacao.getIndividuos().addAll(pais);
-
+            
+            // Adiciona todos indivíduos da populaçao a nova população
+            novaPopulacao.getIndividuos().addAll(populacao.getIndividuos());
+            
             // Reproduz pra gerar os (tamPop - numPais) selecionados pelo elitismo
-            for (int i = 0; i < (tamPop - numPais); ++i) {
+            for (int i = 0; i < (tamPop - numPais); i++) {
 
                 // Gera um número aleatório entre 0 e 1 -> Somente realiza o crossover se o valor gerado for menor que a taxa de crossover
                 if (rnd.nextDouble() <= pCrossover) {
@@ -161,14 +165,20 @@ public class AG {
                 }
             }
 
-            // Define os sobreviventes -> Primeiro: adiciona todos indivíduos da novaPop na pop
+            // Define os sobreviventes -> Primeiro: ordena os indivíduos da nova população pela função objetivo
+            Collections.sort(novaPopulacao.getIndividuos());
+            
+            // Define os sobreviventes -> Segundo: seleciona apenas os x primeiros, mantendo o tamanho da população
+            novaPopulacao.getIndividuos().subList(tamPop - numPais, novaPopulacao.getIndividuos().size()).clear();
+
+            // Define os sobreviventes -> Terceiro: limpa a população
+            populacao.getIndividuos().clear();
+
+            // Define os sobreviventes -> Quarto: adiciona a elite na população
+            populacao.getIndividuos().addAll(elite);
+
+            // Define os sobreviventes -> Quinto: adiciona a nova população na população
             populacao.getIndividuos().addAll(novaPopulacao.getIndividuos());
-
-            // Define os sobreviventes -> Segundo: ordena os indivíduos da população pela função objetivo
-            Collections.sort(populacao.getIndividuos());
-
-            // Define os sobreviventes -> Terceiro: seleciona apenas os x primeiros, mantendo o tamanho da população
-            populacao.getIndividuos().subList(tamPop, populacao.getIndividuos().size()).clear();
 
             try {
                 // Atualiza a variável que armazena o melhor indivíduo da população
