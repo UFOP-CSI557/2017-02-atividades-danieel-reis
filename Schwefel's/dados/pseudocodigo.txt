@@ -8,7 +8,7 @@ Para cada geração
             Cria descendente1 usando crossover de 1 ponto combinando pai1 com pai2
             Mutação por bit no descendente1
             Avalia descendente1
-        Se rnd [0,1] <= taxa de mutacao
+        Se rnd [0,1] >= taxa de mutacao
             Cria descendente2 usando um pai aleatório na pop
             Mutação por bit no descendente2
             Avalia descendente2
