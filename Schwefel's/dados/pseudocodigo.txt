@@ -1,0 +1,39 @@
+Cria e avalia pop inicial
+Calcula numr (numero de melhores indivíduos selecionados para novaPop)
+Para cada geração
+    Move os numr (pop -> novaPop)
+    Gera os (tamPop - numr) -> Cria descendentes com base nos x melhores
+        Se rnd [0,1] <= taxa de crossover
+            Seleciona dois pais aleatórios na novaPop
+            Cria descendente1 usando crossover de 1 ponto combinando pai1 com pai2
+            Mutação por bit no descendente1
+            Avalia descendente1
+        Se rnd [0,1] <= taxa de mutacao
+            Cria descendente2 usando um pai aleatório na pop
+            Mutação por bit no descendente2
+            Avalia descendente2
+        Adiciona o descendente com melhor FO ou o único gerado
+    Define sobreviventes:
+        Insere novaPop na pop
+        Ordena pop pela FO
+        Corta pop em tamPop
+
+    
+Cria e avalia pop inicial
+Calcula o número de pais (% elitismo)
+Para cada geração
+    Move os x% melhores indivíduos (pop -> elite)
+    Gera os (tamPop - numPais)
+        Se rnd [0,1] <= taxa de crossover
+            Seleciona dois pais aleatórios na pop
+            Cria descendente usando crossover de 1 ponto combinando pai1 com pai2
+            Mutação por bit no descendente
+            Avalia descendente
+            Adiciona descendente na novapop
+    Define sobreviventes:
+        Limpa pop
+        Ordena novaPop pela FO
+        Corta novaPop em [tamPop - numPais]
+        Insere na pop [elite + novaPop]
+
+        
