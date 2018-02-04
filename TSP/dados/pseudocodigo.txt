@@ -1,0 +1,49 @@
+Cria e avalia pop inicial
+Calcula numr (numero de melhores indivíduos selecionados para novaPop)
+Para cada geração
+    Move os numr (pop -> novaPop)
+    Gera os (tamPop - numr) -> Cria descendentes com base nos x melhores
+        Se rnd [0,1] <= taxa de crossover
+            Seleciona dois pais aleatórios na novaPop
+            Cria descendente1 e descendente2 usando crossoverOX combinando pai1 com pai2
+            Mutação SWAP no descendente1
+            Avalia descendente1 e descendente2
+            Se rnd [0,1] <= taxa de busca local
+                Busca local no descendente1 (troca u por v)
+            Se rnd [0,1] <= taxa de busca local
+                Busca local no descendente2 (troca u por v)
+            Adiciona descendente1 e descendente2 na novaPop
+        Se rnd [0,1] >= taxa de mutacao
+            Cria descendente3 usando um pai aleatório na pop
+            Mutação SWAP no descendente3
+            Avalia descendente3
+            Se rnd [0,1] <= taxa de busca local
+                Busca local no descendente3 (troca u por v)
+            Adiciona descendente1 e descendente2 na novaPop
+    Define sobreviventes:
+        Insere novaPop na pop
+        Ordena pop pela FO
+        Corta pop em tamPop
+
+    
+Cria e avalia pop inicial
+Para cada geração
+    Limpa a novaPop
+    Gera os tamPop
+        Se rnd [0,1] <= taxa de crossover
+            Seleciona dois pais aleatórios na pop
+            Cria descendente1 e descendente2 usando crossoverOX combinando pai1 com pai2
+            Avalia descendente1 e descendente2
+            Mutação SWAP no descendente1 e descendente2
+            Avalia descendente1 e descendente2
+            Se rnd [0,1] <= taxa de busca local
+                Busca local no descendente1 (troca u por v)
+            Se rnd [0,1] <= taxa de busca local
+                Busca local no descendente2 (troca u por v)
+            Adiciona descendente1 e descendente2 na novapop
+    Define sobreviventes:
+        Insere novaPop na pop
+        Ordena pop pela FO
+        Corta pop em tamPop
+
+        
